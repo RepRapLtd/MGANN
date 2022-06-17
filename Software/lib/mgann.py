@@ -12,13 +12,28 @@ class Node:
         self.identity = identity
 
     def __str__(self):
-        s = "node " + str(self.identity) + " : "
+        s = ""
+        if self.identity < 10:
+            s += " "
+        if self.identity < 100:
+            s += " "
+        s += "node " + str(self.identity) + " : "
+        if self.sum >= 0.0:
+            s += " "
+        s += "{:.6f}".format(self.sum)
+        if self.firing:
+            s += " F "
+        else:
+            s += "   "
         for n in self.neighbours:
             s += "n: " + str(n[0])
-            s += " w: " + str(n[1]) + " "
+            s += " w: "
+            if n[1] >= 0:
+                s += " "
+            s += "{:.6f}".format(n[1]) + ", "
         return s
 
-    def Output(self):
+    def Save(self):
         s = str(self.identity) + " "
         for n in self.neighbours:
             s += str(n[0]) + " "
@@ -30,7 +45,6 @@ class Node:
             n[1] = random.uniform(-1.0, 1.0)
 
 
-
 class MGANN:
     def __init__(self, mgannFile):
         self.nodes = []
@@ -38,7 +52,6 @@ class MGANN:
         mFile = open(mgannFile, "r")
         mLines = mFile.readlines()
         for mLine in mLines:
-            count += 1
             mLine = mLine.split()
             if len(mLine) < 7:
                 return
@@ -49,6 +62,17 @@ class MGANN:
             for n in range(1, 7, 2):
                 nodes.append([int(mLine[n]), float(mLine[n+1])])
             self.nodes.append(Node(identity, nodes))
+            count += 1
+
+    def Step(self):
+        for n in self.nodes:
+            n.sum = 0.0
+        for n in self.nodes:
+            if n.firing:
+                for ngh in n.neighbours:
+                    self.nodes[ngh[0]].sum += ngh[1]
+        for n in self.nodes:
+            n.firing = n.sum > 0
 
     def __str__(self):
         s = ""
@@ -63,9 +87,13 @@ class MGANN:
     def Save(self, mgannFile):
         mFile = open(mgannFile, "w")
         for n in self.nodes:
-            mFile.write(n.Output() + "\n")
+            mFile.write(n.Save() + "\n")
 
 m = MGANN("petersen.mgann")
 m.SetRandomWeights()
+m.nodes[4].firing = True
+print(str(m))
+for s in range(10):
+    m.Step()
 print(str(m))
 m.Save("tf.mgann")
