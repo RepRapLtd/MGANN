@@ -89,11 +89,14 @@ class MGANN:
         for n in self.nodes:
             mFile.write(n.Save() + "\n")
 
-m = MGANN("petersen.mgann")
+m = MGANN("30-node-8-girth.mgann")
 m.SetRandomWeights()
 m.nodes[4].firing = True
+m.nodes[10].firing = True
+m.nodes[11].firing = True
+m.nodes[23].firing = True
 print(str(m))
-for s in range(10):
+for s in range(8):
     m.Step()
 print(str(m))
 m.Save("tf.mgann")
